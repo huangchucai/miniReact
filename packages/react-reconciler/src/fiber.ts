@@ -1,6 +1,7 @@
 import { WorkTag } from "./workTags";
 import { Key, Props, Ref } from "shared/ReactTypes";
 import { Flags, NoFlags } from "./fiberFlags";
+import { Container } from "hostConfig";
 
 export class FiberNode {
   tag: WorkTag;
@@ -14,8 +15,10 @@ export class FiberNode {
   index: number;
   ref: Ref;
   memoizedProps: Props | null;
+  memoizedState: any;
   alternate: FiberNode | null;
   flags: Flags;
+  updateQueue: unknown;
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     this.tag = tag;
@@ -35,9 +38,53 @@ export class FiberNode {
     // 工作单元
     this.pendingProps = pendingProps; // 等待更新的属性
     this.memoizedProps = null; // 正在工作的属性
+    this.memoizedState = null;
+    this.updateQueue = null;
 
     this.alternate = null; // 双缓存树指向(workInProgress 和 current切换）
-
-    this.flags = NoFlags;
+    this.flags = NoFlags; // 副作用标识
   }
 }
+
+/**
+ * 顶部节点
+ */
+export class FiberRootNode {
+  container: Container; // 不同环境的不同的节点 在浏览器环境 就是 root节点
+  current: FiberNode;
+  finishedWork: FiberNode | null; // 递归完成后的hostRootFiber
+  constructor(container: Container, hostRootFiber: FiberNode) {
+    this.container = container;
+    this.current = hostRootFiber;
+    hostRootFiber.stateNode = this;
+    this.finishedWork = null;
+  }
+}
+
+export const createWorkInProgress = (
+  current: FiberNode,
+  pendingProps: Props
+): FiberNode => {
+  let wip = current.alternate;
+
+  if (wip === null) {
+    //mount
+    wip = new FiberNode(current.tag, pendingProps, current.key);
+    wip.stateNode = current.stateNode;
+
+    wip.alternate = current;
+    current.alternate = wip;
+  } else {
+    //update
+    wip.pendingProps = pendingProps;
+    // 清掉副作用（上一次更新遗留下来的）
+    wip.flags = NoFlags;
+  }
+
+  wip.type = current.type;
+  wip.updateQueue = current.updateQueue;
+  wip.child = current.child;
+  wip.memoizedProps = current.memoizedProps;
+  wip.memoizedState = current.memoizedState;
+  return wip;
+};
