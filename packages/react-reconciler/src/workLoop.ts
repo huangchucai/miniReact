@@ -17,11 +17,11 @@ function prepareFreshStack(root: FiberRootNode) {
 }
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
   // todo 调度功能
-  // 1. 从当前触发更新的fiber向上遍历到根节点fiber
   let root = markUpdateFromFiberToRoot(fiber);
   renderRoot(root);
 }
 
+// 从当前触发更新的fiber向上遍历到根节点fiber
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
   let node = fiber;
   let parent = node.return;
