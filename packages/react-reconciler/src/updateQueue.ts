@@ -50,7 +50,7 @@ export const enqueueUpdate = <State>(
 };
 
 /**
- * 消费updateQueue
+ * 消费updateQueue(计算状态的最新值）
  */
 export const processUpdateQueue = <State>(
   baseState: State,
