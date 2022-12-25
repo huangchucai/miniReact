@@ -35,6 +35,7 @@ export function getPackageJSON(pkgName) {
 export function getBaseRollupPlugins({
   alias = {
     __DEV__: true,
+    preventAssignment: true,
   },
   typeScriptConfig = {},
 } = {}) {
