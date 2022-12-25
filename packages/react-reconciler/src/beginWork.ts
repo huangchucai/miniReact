@@ -2,7 +2,7 @@ import { FiberNode } from "./fiber";
 import { HostComponent, HostRoot, HostText } from "./workTags";
 import { processUpdateQueue, UpdateQueue } from "./updateQueue";
 import { ElementType, ReactElementType } from "shared/ReactTypes";
-import { reconcilerChildFibers } from "./childFibers";
+import { mountChildFibers, reconcilerChildFibers } from "./childFibers";
 
 /**
  * 递归中的递阶段
@@ -70,6 +70,6 @@ function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
     wip.child = reconcilerChildFibers(wip, current?.child, children);
   } else {
     // mount
-    wip.child = reconcilerChildFibers(wip, null, children);
+    wip.child = mountChildFibers(wip, null, children);
   }
 }
