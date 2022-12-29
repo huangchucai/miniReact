@@ -52,6 +52,13 @@ export const completeWork = (wip: FiberNode) => {
 
 /**
  * 在parent的节点下，插入wip
+ * 难点： 是fiber对应的节点和Dom树不对应
+ *
+ * function A () {
+ *   return <div>11</div>
+ * }
+ *
+ * <p><A /> <p/>  -> 对应的Dom 是A组件的子元素 <p><div>11</div></p>
  * @param {FiberNode} parent
  * @param {FiberNode} wip
  */

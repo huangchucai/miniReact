@@ -59,7 +59,7 @@ export class FiberRootNode {
     this.container = container;
     this.current = hostRootFiber;
     hostRootFiber.stateNode = this;
-    this.finishedWork = null;
+    this.finishedWork = null; // 最后完成的fiberNode树
   }
 }
 
