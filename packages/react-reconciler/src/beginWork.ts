@@ -1,8 +1,14 @@
 import { FiberNode } from "./fiber";
-import { HostComponent, HostRoot, HostText } from "./workTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+  HostText,
+} from "./workTags";
 import { processUpdateQueue, UpdateQueue } from "./updateQueue";
 import { ElementType, ReactElementType } from "shared/ReactTypes";
 import { mountChildFibers, reconcilerChildFibers } from "./childFibers";
+import { renderWithHooks } from "./fiberHooks";
 
 /**
  * 递归中的递阶段
@@ -14,6 +20,8 @@ export const beginWork = (wip: FiberNode) => {
       return updateHostRoot(wip);
     case HostComponent:
       return updateHostComponent(wip);
+    case FunctionComponent:
+      return updateFunctionComponent(wip);
     case HostText:
       // 文本节点没有子节点，所以没有流程
       return null;
@@ -41,6 +49,16 @@ function updateHostRoot(wip: FiberNode) {
   wip.memoizedState = memoizedState; // 其实就是传入的element
 
   const nextChildren = wip.memoizedState; // 子对应的ReactElement
+  reconcileChildren(wip, nextChildren);
+  return wip.child;
+}
+
+/**
+ * 函数组件的beginWork
+ * @param wip
+ */
+function updateFunctionComponent(wip: FiberNode) {
+  const nextChildren = renderWithHooks(wip);
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }
