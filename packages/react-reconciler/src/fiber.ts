@@ -39,7 +39,7 @@ export class FiberNode {
     // 工作单元
     this.pendingProps = pendingProps; // 等待更新的属性
     this.memoizedProps = null; // 正在工作的属性
-    this.memoizedState = null;
+    this.memoizedState = null; // 指向hooks的链表
     this.updateQueue = null;
 
     this.alternate = null; // 双缓存树指向(workInProgress 和 current切换）

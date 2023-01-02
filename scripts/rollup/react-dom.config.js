@@ -8,7 +8,7 @@ import generatePackageJson from "rollup-plugin-generate-package-json";
 import alias from "@rollup/plugin-alias";
 
 // 获取package.json下面的name字段
-const { name, module } = getPackageJSON("react-dom"); // react
+const { name, module, peerDependencies } = getPackageJSON("react-dom"); // react
 // react包的路径
 const pkgPath = resolvePkgPath(name);
 //react 产物路劲
@@ -29,6 +29,8 @@ export default [
         format: "umd",
       },
     ],
+    // 标记外部依赖代码，不进行打包
+    external: [...Object.keys(peerDependencies)],
     plugins: [
       // webpack resolve alias
       alias({
