@@ -64,6 +64,7 @@ function mountState<State>(
   // useState是可以触发更新的
   const queue = createUpdateQueue<State>();
   hook.updateQueue = queue;
+  hook.memoizedState = memoizedState;
 
   //@ts-ignore
   const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
