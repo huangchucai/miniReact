@@ -2,7 +2,14 @@ import { FiberNode } from "./fiber";
 import internals from "shared/internals";
 import { Dispatcher } from "react/src/currentDispatcher";
 import { Dispatch } from "react/src/currentDispatcher";
-import { createUpdateQueue } from "./updateQueue";
+import {
+  createUpdate,
+  createUpdateQueue,
+  enqueueUpdate,
+  UpdateQueue,
+} from "./updateQueue";
+import { Action } from "shared/ReactTypes";
+import { scheduleUpdateOnFiber } from "./workLoop";
 
 let currentlyRenderingFiber: FiberNode | null = null; // 记录当前正在执行的render 的FC 对应的fiberNode
 let workInProgressHook: Hook | null = null; // 当前正在处理的hook
@@ -58,11 +65,25 @@ function mountState<State>(
   const queue = createUpdateQueue<State>();
   hook.updateQueue = queue;
 
-  //todo dispatch实现
-
+  //@ts-ignore
+  const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
+  queue.dispatch = dispatch;
   return [memoizedState, dispatch];
 }
 
+function dispatchSetState<State>(
+  fiber: FiberNode,
+  updateQueue: UpdateQueue<State>,
+  action: Action<State>
+) {
+  const update = createUpdate(action); // 1. 创建update
+  enqueueUpdate(updateQueue, update); //  2. 将更新放入队列中
+  scheduleUpdateOnFiber(fiber); // 3. 开始调度
+}
+
+/**
+ * 获取当前hook对应的数据
+ */
 function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
     memoizedState: null,
