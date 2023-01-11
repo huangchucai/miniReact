@@ -136,8 +136,8 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
 
 /**
  * 双缓存树原理：基于当前的fiberNode创建一个新的fiberNode, 而不用去调用new FiberNode
- * @param {FiberNode} fiber
- * @param {Props} pendingProps
+ * @param {FiberNode} fiber 正在展示的fiberNode
+ * @param {Props} pendingProps 新的Props
  * @returns {FiberNode}
  */
 function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {
