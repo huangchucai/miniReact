@@ -52,7 +52,6 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     element: ReactElementType
   ) {
     const key = element.key;
-    // update的情况<单节点的处理 div -> p>
     while (currentFiber !== null) {
       // key相同
       if (currentFiber.key === key) {
@@ -67,7 +66,7 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
             return existing;
           }
           // 删除旧的 （key相同，type不同） 删除所有旧的
-          deleteRemainingChildren(returnFiber, currentFiber); // 标记其他兄弟节点删除 A1 -> A1 B1 C1
+          deleteRemainingChildren(returnFiber, currentFiber);
           break;
         } else {
           if (__DEV__) {
@@ -82,6 +81,7 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
       }
     }
 
+    // 根据element 创建fiber
     const fiber = createFiberFromElement(element);
     fiber.return = returnFiber;
     return fiber;
