@@ -23,6 +23,21 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     }
   }
 
+  function deleteRemainingChildren(
+    returnFiber: FiberNode,
+    currentFirstChild: FiberNode | null
+  ) {
+    if (!shouldTrackEffects) {
+      return;
+    }
+
+    let childToDelete = currentFirstChild;
+    while (childToDelete !== null) {
+      deleteChild(returnFiber, childToDelete);
+      childToDelete = childToDelete.sibling;
+    }
+  }
+
   /**
    * 根据reactElement对象创建fiber并返回
    * @param {FiberNode} returnFiber
@@ -36,7 +51,7 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
   ) {
     const key = element.key;
     // update的情况<单节点的处理 div -> p>
-    if (currentFiber !== null) {
+    while (currentFiber !== null) {
       // key相同
       if (currentFiber.key === key) {
         // 是react元素
@@ -45,18 +60,23 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
           if (currentFiber.type === element.type) {
             const existing = useFiber(currentFiber, element.props);
             existing.return = returnFiber;
+            // 当前节点可以复用，需要标记剩下节点
+            deleteRemainingChildren(returnFiber, currentFiber.sibling);
             return existing;
           }
-          // 删除旧的 （key相同，type不同）
-          deleteChild(returnFiber, currentFiber);
+          // 删除旧的 （key相同，type不同） 删除所有旧的
+          deleteRemainingChildren(returnFiber, currentFiber); // 标记其他兄弟节点删除 A1 -> A1 B1 C1
+          break;
         } else {
           if (__DEV__) {
             console.warn("还未实现的React类型", element);
+            break;
           }
         }
       } else {
-        // 删掉旧的，之后创建新的
+        // key 不同
         deleteChild(returnFiber, currentFiber);
+        currentFiber = currentFiber.sibling;
       }
     }
 
@@ -71,15 +91,17 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     content: string | number
   ): FiberNode {
     // update
-    if (currentFiber !== null) {
+    while (currentFiber !== null) {
       // 类型没有变，可以复用
       if (currentFiber.tag === HostText) {
         const existing = useFiber(currentFiber, { content });
         existing.return = returnFiber;
+        deleteRemainingChildren(returnFiber, currentFiber.sibling); // 标记其他兄弟节点删除 A1 -> A1 B1 C1
         return existing;
       }
       // 删掉之前的 （之前的div， 现在是hostText）
       deleteChild(returnFiber, currentFiber);
+      currentFiber = currentFiber.sibling;
     }
     const fiber = new FiberNode(HostText, { content }, null);
     fiber.return = returnFiber;
