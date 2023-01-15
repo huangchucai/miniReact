@@ -125,17 +125,17 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     newChild: any[]
   ) {
     // 最后一个可复用fiber在current中的index
-    let lastPlacedIndex: number = 0;
+    let lastPlacedIndex = 0;
     // 创建的最后一个fiber
     let lastNewFiber: FiberNode | null = null;
     // 创建的第一个fiber
     let firstNewFiber: FiberNode | null = null;
 
     // 1. 将current保存在map中
-    let existingChildren: ExistingChildren = new Map();
+    const existingChildren: ExistingChildren = new Map();
     let current = currentFirstChild;
     while (current !== null) {
-      let keyToUse = current.key !== null ? current.key : current.index;
+      const keyToUse = current.key !== null ? current.key : current.index;
       existingChildren.set(keyToUse, current);
       current = current.sibling;
     }
@@ -204,7 +204,7 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     index: number,
     element: any
   ): FiberNode | null {
-    const keyToUse = element.key !== null ? element.key : element.index;
+    const keyToUse = element.key !== null ? element.key : index;
     const before = existingChildren.get(keyToUse);
 
     if (typeof element === "string" || typeof element === "number") {
