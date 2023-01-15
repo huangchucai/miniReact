@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ReactDOM from "react-dom/client";
-function App() {
+/*function App() {
   const [num, setNum] = useState(3);
   // const [num1, setNum1] = useState(3);
   // const [num2, setNum2] = useState(3);
@@ -39,21 +39,18 @@ function App() {
       </div>
     </div>
   );
+}*/
+
+function App() {
+  const [num, setNum] = useState(100);
+  const arr =
+    num % 2 === 0
+      ? [<li key="1">1</li>, <li key="2">2</li>, <li key="3">3</li>]
+      : [<li key="3">3</li>, <li key="2">2</li>, <li key="1">1</li>];
+
+  return <ul onClickCapture={() => setNum(num + 1)}>{arr}</ul>;
 }
 
-// function App() {
-//   const [num, setNum] = useState(100);
-//   window.setNum = setNum;
-//   return (
-//     <div>
-//       <span>{num}</span>
-//     </div>
-//   );
-// }
-
-function Child() {
-  return <div>Hello World</div>;
-}
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <App />
 );
