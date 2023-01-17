@@ -43,7 +43,7 @@ export function initEvent(container: Container, eventType: string) {
 function createSyntheticEvent(e: Event) {
   const syntheticEvent = e as SyntheticEvent;
   syntheticEvent.__stopPropagation = false;
-  const originStopPropagation = e.stopPropagation;
+  const originStopPropagation = e.stopPropagation.bind(e);
 
   syntheticEvent.stopPropagation = () => {
     syntheticEvent.__stopPropagation = true;
@@ -137,7 +137,6 @@ function collectPaths(
         });
       }
     }
-
     targetElement = targetElement.parentNode as DOMElement;
   }
   return paths;
