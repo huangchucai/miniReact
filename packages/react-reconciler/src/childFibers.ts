@@ -241,7 +241,7 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     return null;
   }
 
-  return function reconcilerChildFibers(
+  return function reconcileChildFibers(
     returnFiber: FiberNode,
     currentFiber: FiberNode | null,
     newChild?: ReactElementType | string | number
@@ -296,5 +296,5 @@ function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {
   return clone;
 }
 
-export const reconcilerChildFibers = ChildReconciler(true);
+export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);

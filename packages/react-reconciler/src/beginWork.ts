@@ -7,7 +7,7 @@ import {
 } from "./workTags";
 import { processUpdateQueue, UpdateQueue } from "./updateQueue";
 import { ElementType, ReactElementType } from "shared/ReactTypes";
-import { mountChildFibers, reconcilerChildFibers } from "./childFibers";
+import { mountChildFibers, reconcileChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
 
 /**
@@ -84,7 +84,7 @@ function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
   const current = wip.alternate;
   if (current !== null) {
     // update
-    wip.child = reconcilerChildFibers(wip, current?.child, children);
+    wip.child = reconcileChildFibers(wip, current?.child, children);
   } else {
     // mount
     wip.child = mountChildFibers(wip, null, children);
