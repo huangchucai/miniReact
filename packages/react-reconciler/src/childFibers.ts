@@ -145,12 +145,12 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
       const after = newChild[i];
       const newFiber = updateFromMap(returnFiber, existingChildren, i, after);
 
-      // 更新后是删除的就是null
+      // 更新后节点删除 newFiber就是null, 此时就不用处理下面逻辑了
       if (newFiber === null) {
         continue;
       }
 
-      // 3. 标记移动还是插入最后一个
+      // 3. 标记移动还是插入
       newFiber.index = i;
       newFiber.return = returnFiber;
       if (lastNewFiber === null) {
