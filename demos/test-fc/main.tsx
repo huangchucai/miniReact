@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { Fragment, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 console.log(Fragment);
@@ -46,7 +46,7 @@ console.log(Fragment);
 
 function App() {
   const [num, setNum] = useState(101);
-  // let arr = [<li>c</li>, <li>d</li>];
+  let arr = [<li>1</li>, <li>2</li>];
   // return (
   //   <ul>
   //     <li>a</li>
@@ -54,28 +54,34 @@ function App() {
   //     {arr}
   //   </ul>
   // );
+  return (
+    <ul>
+      {arr}
+      <li>3</li>
+      <li>4</li>
+    </ul>
+  );
+  // <>
+  //   <div>hcc</div>
+  //   <div>yx</div>
+  // </>
+  // return <ul onClickCapture={() => setNum(num + 1)}>{arr}</ul>;
   // return (
-  //   <div>
-  //     <p>1</p>
+  //   <div
+  //     onClick={() => {
+  //       setNum(num + 1);
+  //     }}
+  //   >
+  //     {num % 2 === 0 ? (
+  //       <div>{num}</div>
+  //     ) : (
+  //       <Fragment key="11">
+  //         <p>xxx</p>
+  //         <p>yyy</p>
+  //       </Fragment>
+  //     )}
   //   </div>
   // );
-  // return <ul onClickCapture={() => setNum(num + 1)}>{arr}</ul>;
-  return (
-    <div
-      onClick={() => {
-        setNum(num + 1);
-      }}
-    >
-      {num % 2 === 0 ? (
-        <div>{num}</div>
-      ) : (
-        <Fragment key="11">
-          <p>xxx</p>
-          <p>yyy</p>
-        </Fragment>
-      )}
-    </div>
-  );
 }
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

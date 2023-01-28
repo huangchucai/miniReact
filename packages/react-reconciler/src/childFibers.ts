@@ -339,7 +339,7 @@ function updateFragment(
 ) {
   let fiber;
   if (!current || current.tag !== Fragment) {
-    // 不存在/更新后的tag不是Fragment
+    // 不存在/更新前的tag不是Fragment
     fiber = createFiberFromFragment(elements, key);
   } else {
     // 存在并且类型还是Fragment

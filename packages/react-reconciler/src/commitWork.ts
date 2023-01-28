@@ -82,7 +82,7 @@ function recordHostChildrenToDelete(
   unmountFiber: FiberNode
 ) {
   // 1. 找到第一个root host 节点
-  let lastOne = childrenToDelete[childrenToDelete.length - 1];
+  const lastOne = childrenToDelete[childrenToDelete.length - 1];
   if (!lastOne) {
     childrenToDelete.push(unmountFiber);
   } else {
@@ -102,7 +102,7 @@ function recordHostChildrenToDelete(
  * @param {FiberNode} childToDelete
  */
 function commitDeletion(childToDelete: FiberNode) {
-  let rootChildrenToDelete: FiberNode[] = [];
+  const rootChildrenToDelete: FiberNode[] = [];
   // 递归子树
   commitNestedComponent(childToDelete, (unmountFiber) => {
     switch (unmountFiber.tag) {
