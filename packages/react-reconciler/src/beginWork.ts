@@ -1,5 +1,6 @@
 import { FiberNode } from "./fiber";
 import {
+  Fragment,
   FunctionComponent,
   HostComponent,
   HostRoot,
@@ -25,6 +26,8 @@ export const beginWork = (wip: FiberNode) => {
     case HostText:
       // 文本节点没有子节点，所以没有流程
       return null;
+    case Fragment:
+      return updateFragment(wip);
     default:
       if (__DEV__) {
         console.warn("beginWork未实现的类型");
@@ -49,6 +52,16 @@ function updateHostRoot(wip: FiberNode) {
   wip.memoizedState = memoizedState; // 其实就是传入的element
 
   const nextChildren = wip.memoizedState; // 子对应的ReactElement
+  reconcileChildren(wip, nextChildren);
+  return wip.child;
+}
+
+/**
+ * Fragment的beginWork
+ * @param wip
+ */
+function updateFragment(wip: FiberNode) {
+  const nextChildren = wip.pendingProps;
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }

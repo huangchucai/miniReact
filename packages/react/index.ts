@@ -1,4 +1,9 @@
-import { jsx, jsxDEV, isValidElement as isValidElementFn } from "./src/jsx";
+import {
+  jsx,
+  jsxDEV,
+  isValidElement as isValidElementFn,
+  Fragment as fragment,
+} from "./src/jsx";
 import currentDispatcher, {
   Dispatcher,
   resolveDispatcher,
@@ -17,3 +22,4 @@ export const isValidElement = isValidElementFn;
 export const version = "0.0.0";
 // TODO 根据环境区分使用jsx/jesDEV
 export const createElement = jsx;
+export const Fragment = fragment;

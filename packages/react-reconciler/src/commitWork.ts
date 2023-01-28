@@ -73,24 +73,45 @@ const commitMutationEffectsOnFibers = (finishedWork: FiberNode) => {
 };
 
 /**
+ * 记录要删除的子节点
+ * @param childrenToDelete
+ * @param unmountFiber
+ */
+function recordHostChildrenToDelete(
+  childrenToDelete: FiberNode[],
+  unmountFiber: FiberNode
+) {
+  // 1. 找到第一个root host 节点
+  let lastOne = childrenToDelete[childrenToDelete.length - 1];
+  if (!lastOne) {
+    childrenToDelete.push(unmountFiber);
+  } else {
+    let node = lastOne.sibling;
+    while (node !== null) {
+      if (unmountFiber === node) {
+        childrenToDelete.push(unmountFiber);
+      }
+      node = node.sibling;
+    }
+  }
+
+  // 2. 每找到一个 host节点，判断下这个节点是不是 第一个的兄弟节点
+}
+/**
  * 删除对应的子fiberNode
  * @param {FiberNode} childToDelete
  */
 function commitDeletion(childToDelete: FiberNode) {
-  let rootHostNode: FiberNode | null = null;
+  let rootChildrenToDelete: FiberNode[] = [];
   // 递归子树
   commitNestedComponent(childToDelete, (unmountFiber) => {
     switch (unmountFiber.tag) {
       case HostComponent:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber;
-        }
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
         // TODO: 解绑ref
         return;
       case HostText:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber;
-        }
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
         return;
       case FunctionComponent:
         // TODO: useEffect unmount 解绑ref
@@ -103,13 +124,14 @@ function commitDeletion(childToDelete: FiberNode) {
     }
   });
   // 移除rootHostNode的DOM
-  if (rootHostNode !== null) {
+  if (rootChildrenToDelete.length) {
     const hostParent = getHostParent(childToDelete);
     if (hostParent !== null) {
-      removeChild((rootHostNode as FiberNode).stateNode, hostParent);
+      rootChildrenToDelete.forEach((node) => {
+        removeChild(node.stateNode, hostParent);
+      });
     }
   }
-
   childToDelete.return = null;
   childToDelete.child = null;
 }
@@ -164,7 +186,6 @@ const commitPlacement = (finishWork: FiberNode) => {
 
 /**
  * 获取相邻的真正的dom节点
- *
  */
 function getHostSibling(fiber: FiberNode) {
   let node: FiberNode = fiber;
