@@ -86,6 +86,7 @@ function recordHostChildrenToDelete(
   if (!lastOne) {
     childrenToDelete.push(unmountFiber);
   } else {
+    // 2. 每找到一个 host节点，判断下这个节点是不是 第一个的兄弟节点
     let node = lastOne.sibling;
     while (node !== null) {
       if (unmountFiber === node) {
@@ -94,8 +95,6 @@ function recordHostChildrenToDelete(
       node = node.sibling;
     }
   }
-
-  // 2. 每找到一个 host节点，判断下这个节点是不是 第一个的兄弟节点
 }
 /**
  * 删除对应的子fiberNode
