@@ -214,7 +214,11 @@ export function ChildReconciler(shouldTrackEffects: boolean) {
     index: number,
     element: any
   ): FiberNode | null {
-    const keyToUse = element.key !== null ? element.key : index;
+    let keyToUse = element.key !== null ? element.key : index;
+    // 兼容数组的情况，key为undefined， 取索引
+    if (Array.isArray(element)) {
+      keyToUse = index;
+    }
     const before = existingChildren.get(keyToUse);
 
     if (typeof element === "string" || typeof element === "number") {
