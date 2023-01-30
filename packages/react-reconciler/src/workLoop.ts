@@ -11,6 +11,7 @@ import { completeWork } from "./completeWork";
 import { HostRoot } from "./workTags";
 import { MutationMask, NoFlags } from "./fiberFlags";
 import { commitMutationEffects } from "./commitWork";
+import { Lane, mergeLanes } from "./fiberLanes";
 
 let workInProgress: FiberNode | null = null;
 
@@ -18,12 +19,19 @@ function prepareFreshStack(root: FiberRootNode) {
   workInProgress = createWorkInProgress(root.current, {});
 }
 
-export function scheduleUpdateOnFiber(fiber: FiberNode) {
+export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
   // todo 调度功能
   let root = markUpdateFromFiberToRoot(fiber);
+  markRootUpdated(root, lane);
   renderRoot(root);
 }
 
+/**
+ * 处理rootNode的lanes
+ */
+function markRootUpdated(root: FiberRootNode, lane: Lane) {
+  root.pendingLanes = mergeLanes(root.pendingLanes, lane);
+}
 // 从当前触发更新的fiber向上遍历到根节点fiber
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
   let node = fiber;

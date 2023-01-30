@@ -10,6 +10,7 @@ import {
 } from "./updateQueue";
 import { Action } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
+import { requestUpdateLane } from "./fiberLanes";
 
 let currentlyRenderingFiber: FiberNode | null = null; // 记录当前正在执行的render 的FC 对应的fiberNode
 let workInProgressHook: Hook | null = null; // 当前正在处理的hook
@@ -102,9 +103,10 @@ function dispatchSetState<State>(
   updateQueue: UpdateQueue<State>,
   action: Action<State>
 ) {
-  const update = createUpdate(action); // 1. 创建update
+  const lane = requestUpdateLane(); // 每一个更新设置一个lane(优先级）
+  const update = createUpdate(action, lane); // 1. 创建update
   enqueueUpdate(updateQueue, update); //  2. 将更新放入队列中
-  scheduleUpdateOnFiber(fiber); // 3. 开始调度
+  scheduleUpdateOnFiber(fiber, lane); // 3. 开始调度
 }
 
 /**
