@@ -7,6 +7,7 @@ import { Dispatch } from "react/src/currentDispatcher";
  */
 export interface Update<State> {
   action: Action<State>;
+  next: Update<any> | null;
 }
 
 export interface UpdateQueue<State> {
@@ -24,6 +25,7 @@ export interface UpdateQueue<State> {
 export const createUpdate = <State>(action: Action<State>): Update<State> => {
   return {
     action,
+    next: null,
   };
 };
 
@@ -49,6 +51,16 @@ export const enqueueUpdate = <State>(
   updateQueue: UpdateQueue<State>,
   update: Update<State>
 ) => {
+  const pending = updateQueue.shared.pending;
+  if (pending === null) {
+    // 第一次执行update pending = a -> a
+    update.next = update;
+  } else {
+    // 第二个update pending = b -> a -> b
+    // 第三个update pending = c -> a -> b -> c
+    update.next = pending.next;
+    pending.next = update;
+  }
   updateQueue.shared.pending = update;
 };
 
