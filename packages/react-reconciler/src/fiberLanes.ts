@@ -1,3 +1,5 @@
+import { FiberRootNode } from "./fiber";
+
 export type Lane = number;
 // 集合
 export type Lanes = number;
@@ -12,4 +14,17 @@ export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {
 
 export function requestUpdateLane() {
   return SyncLane;
+}
+
+/**
+ * 获取优先级最高的lane  ->  越小优先级越高
+ * @param {Lanes} lanes
+ * @returns {Lane}
+ */
+export function getHighestPriorityLane(lanes: Lanes): Lane {
+  return lanes & -lanes;
+}
+
+export function markRootFinished(root: FiberRootNode, lane: Lane) {
+  root.pendingLanes &= ~lane;
 }

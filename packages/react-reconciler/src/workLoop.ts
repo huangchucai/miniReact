@@ -11,19 +11,51 @@ import { completeWork } from "./completeWork";
 import { HostRoot } from "./workTags";
 import { MutationMask, NoFlags } from "./fiberFlags";
 import { commitMutationEffects } from "./commitWork";
-import { Lane, mergeLanes } from "./fiberLanes";
+import {
+  getHighestPriorityLane,
+  Lane,
+  markRootFinished,
+  mergeLanes,
+  NoLane,
+  SyncLane,
+} from "./fiberLanes";
+import { flushSyncCallbacks, scheduleSyncCallback } from "./syncTaskQueue";
+import { scheduleMicroTask } from "hostConfig";
 
 let workInProgress: FiberNode | null = null;
+let wipRootRenderLane: Lane = NoLane;
 
-function prepareFreshStack(root: FiberRootNode) {
+function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   workInProgress = createWorkInProgress(root.current, {});
+  wipRootRenderLane = lane;
 }
 
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
-  // todo 调度功能
+  // fiberRootNode
   let root = markUpdateFromFiberToRoot(fiber);
   markRootUpdated(root, lane);
-  renderRoot(root);
+  // renderRoot(root);
+  ensureRootIsScheduled(root);
+}
+
+/**
+ * 调度阶段入口
+ */
+function ensureRootIsScheduled(root: FiberRootNode) {
+  let updateLane = getHighestPriorityLane(root.pendingLanes);
+  if (updateLane === NoLane) {
+    return;
+  }
+  if (updateLane === SyncLane) {
+    // 同步优先级  用微任务调度
+    if (__DEV__) {
+      console.log("-hcc-在微任务中调度，优先级：", updateLane);
+    }
+    scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root, updateLane));
+    scheduleMicroTask(flushSyncCallbacks);
+  } else {
+    // 其他优先级 用宏任务调度
+  }
 }
 
 /**
@@ -46,9 +78,23 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
   return null;
 }
 
-function renderRoot(root: FiberRootNode) {
+/**
+ * 同步更新入口(render入口)
+ * @param {FiberRootNode} root
+ */
+function performSyncWorkOnRoot(root: FiberRootNode, lane: Lane) {
+  let nextLane = getHighestPriorityLane(root.pendingLanes);
+  if (nextLane !== SyncLane) {
+    // 其他比SyncLane 低的优先级
+    // NoLane
+    ensureRootIsScheduled(root);
+    return;
+  }
+  if (__DEV__) {
+    console.warn("-hcc-render阶段开始");
+  }
   // 初始化，将workInProgress 指向第一个fiberNode
-  prepareFreshStack(root);
+  prepareFreshStack(root, lane);
   do {
     try {
       workLoop();
@@ -63,6 +109,8 @@ function renderRoot(root: FiberRootNode) {
 
   const finishedWork = root.current.alternate;
   root.finishedWork = finishedWork;
+  root.finishedLane = lane;
+  wipRootRenderLane = NoLane;
 
   // wip fiberNode树  树中的flags执行对应的操作
   commitRoot(root);
@@ -78,8 +126,15 @@ function commitRoot(root: FiberRootNode) {
   if (__DEV__) {
     console.warn("commit阶段开始", finishedWork);
   }
+  const lane = root.finishedLane;
+
+  if (lane === NoLane && __DEV__) {
+    console.error("commit阶段finishedLane 不应该是NoLane");
+  }
   // 重置
   root.finishedWork = null;
+  root.finishedLane = NoLane;
+  markRootFinished(root, lane);
 
   // 判断是否存在子阶段需要执行的操作
   const subtreeHasEffect =
@@ -104,7 +159,7 @@ function workLoop() {
 }
 
 function performUnitOfWork(fiber: FiberNode): void {
-  const next = beginWork(fiber); // next 是fiber的子fiber 或者 是null
+  const next = beginWork(fiber, wipRootRenderLane); // next 是fiber的子fiber 或者 是null
   // 工作完成，需要将pendingProps 复制给 已经渲染的props
   fiber.memoizedProps = fiber.pendingProps;
 

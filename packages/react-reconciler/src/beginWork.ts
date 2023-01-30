@@ -10,19 +10,20 @@ import { processUpdateQueue, UpdateQueue } from "./updateQueue";
 import { ElementType, ReactElementType } from "shared/ReactTypes";
 import { mountChildFibers, reconcileChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
+import { Lane } from "./fiberLanes";
 
 /**
  * 递归中的递阶段
  * 比较 然后返回子fiberNode 或者null
  */
-export const beginWork = (wip: FiberNode) => {
+export const beginWork = (wip: FiberNode, renderLane: Lane) => {
   switch (wip.tag) {
     case HostRoot:
-      return updateHostRoot(wip);
+      return updateHostRoot(wip, renderLane);
     case HostComponent:
       return updateHostComponent(wip);
     case FunctionComponent:
-      return updateFunctionComponent(wip);
+      return updateFunctionComponent(wip, renderLane);
     case HostText:
       // 文本节点没有子节点，所以没有流程
       return null;
@@ -42,13 +43,13 @@ export const beginWork = (wip: FiberNode) => {
  * 1. 计算状态的最新值  2. 创造子fiberNode
  * @param {FiberNode} wip
  */
-function updateHostRoot(wip: FiberNode) {
+function updateHostRoot(wip: FiberNode, renderLane: Lane) {
   const baseState = wip.memoizedState;
   const updateQueue = wip.updateQueue as UpdateQueue<ElementType>;
   // 这里是计算最新值
   const pending = updateQueue.shared.pending;
   updateQueue.shared.pending = null;
-  const { memoizedState } = processUpdateQueue(baseState, pending); // 最新状态
+  const { memoizedState } = processUpdateQueue(baseState, pending, renderLane); // 最新状态
   wip.memoizedState = memoizedState; // 其实就是传入的element
 
   const nextChildren = wip.memoizedState; // 子对应的ReactElement
@@ -70,8 +71,8 @@ function updateFragment(wip: FiberNode) {
  * 函数组件的beginWork
  * @param wip
  */
-function updateFunctionComponent(wip: FiberNode) {
-  const nextChildren = renderWithHooks(wip);
+function updateFunctionComponent(wip: FiberNode, renderLane: Lane) {
+  const nextChildren = renderWithHooks(wip, renderLane);
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }
