@@ -45,7 +45,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
  */
 function updateHostRoot(wip: FiberNode, renderLane: Lane) {
   const baseState = wip.memoizedState;
-  const updateQueue = wip.updateQueue as UpdateQueue<ElementType>;
+  const updateQueue = wip.updateQueue as UpdateQueue<ReactElementType>;
   // 这里是计算最新值
   const pending = updateQueue.shared.pending;
   updateQueue.shared.pending = null;
