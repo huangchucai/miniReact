@@ -81,6 +81,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 /**
  * 同步更新入口(render入口)
  * @param {FiberRootNode} root
+ * @param lane
  */
 function performSyncWorkOnRoot(root: FiberRootNode, lane: Lane) {
   let nextLane = getHighestPriorityLane(root.pendingLanes);
