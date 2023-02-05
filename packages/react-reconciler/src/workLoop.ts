@@ -5,12 +5,27 @@
  * 1. 如果有子节点，遍历子节点  2、 没有子节点就遍历兄弟节点
  * 2. 每一个fiber都是先beginWork 然后completeWork
  */
-import { createWorkInProgress, FiberNode, FiberRootNode } from "./fiber";
+import {
+  createWorkInProgress,
+  FiberNode,
+  FiberRootNode,
+  PendingPassiveEffects,
+} from "./fiber";
 import { beginWork } from "./beginWork";
 import { completeWork } from "./completeWork";
 import { HostRoot } from "./workTags";
-import { MutationMask, NoFlags } from "./fiberFlags";
-import { commitMutationEffects } from "./commitWork";
+import {
+  MutationMask,
+  NoFlags,
+  PassiveEffect,
+  PassiveMask,
+} from "./fiberFlags";
+import {
+  commitHookEffectListCreate,
+  commitHookEffectListDestroy,
+  commitHookEffectListUnmount,
+  commitMutationEffects,
+} from "./commitWork";
 import {
   getHighestPriorityLane,
   Lane,
@@ -21,9 +36,15 @@ import {
 } from "./fiberLanes";
 import { flushSyncCallbacks, scheduleSyncCallback } from "./syncTaskQueue";
 import { scheduleMicroTask } from "hostConfig";
+import {
+  unstable_scheduleCallback as scheduleCallback,
+  unstable_NormalPriority as NormalPriority,
+} from "scheduler";
+import { HookHasEffect, Passive } from "./hookEffectTags";
 
 let workInProgress: FiberNode | null = null;
 let wipRootRenderLane: Lane = NoLane;
+let rootDoesHasPassiveEffects: Boolean = false;
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   workInProgress = createWorkInProgress(root.current, {});
@@ -137,6 +158,23 @@ function commitRoot(root: FiberRootNode) {
   root.finishedLane = NoLane;
   markRootFinished(root, lane);
 
+  // 当前Fiber树中存在函数组件需要执行useEffect的回调
+  if (
+    (finishedWork.flags & PassiveMask) !== NoFlags ||
+    (finishedWork.subtreeFlags & PassiveMask) !== NoFlags
+  ) {
+    // 防止多次调用
+    if (!rootDoesHasPassiveEffects) {
+      rootDoesHasPassiveEffects = true;
+      // 调度副作用
+      scheduleCallback(NormalPriority, () => {
+        // 执行副作用
+        flushPassiveEffects(root.pendingPassiveEffects);
+        return;
+      });
+    }
+  }
+
   // 判断是否存在子阶段需要执行的操作
   const subtreeHasEffect =
     (finishedWork.subtreeFlags & MutationMask) !== NoFlags; // 子节点是否有更新
@@ -145,12 +183,33 @@ function commitRoot(root: FiberRootNode) {
   if (subtreeHasEffect || rootHasEffect) {
     // beforeMutation
     // mutation Placement
-    commitMutationEffects(finishedWork);
+    commitMutationEffects(finishedWork, root);
     root.current = finishedWork;
     // layout
   } else {
     root.current = finishedWork;
   }
+
+  rootDoesHasPassiveEffects = false;
+  ensureRootIsScheduled(root);
+}
+
+function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
+  pendingPassiveEffects.unmount.forEach((effect) => {
+    commitHookEffectListUnmount(Passive, effect);
+  });
+  pendingPassiveEffects.unmount = [];
+
+  pendingPassiveEffects.update.forEach((effect) => {
+    commitHookEffectListDestroy(Passive | HookHasEffect, effect);
+  });
+
+  pendingPassiveEffects.update.forEach((effect) => {
+    commitHookEffectListCreate(Passive | HookHasEffect, effect);
+  });
+
+  pendingPassiveEffects.update = [];
+  flushSyncCallbacks();
 }
 
 function workLoop() {
