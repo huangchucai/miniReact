@@ -195,6 +195,7 @@ function commitRoot(root: FiberRootNode) {
 }
 
 function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
+  // unmount effect
   pendingPassiveEffects.unmount.forEach((effect) => {
     commitHookEffectListUnmount(Passive, effect);
   });

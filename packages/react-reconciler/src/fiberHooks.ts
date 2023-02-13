@@ -77,7 +77,7 @@ const HooksDispatcherOnMount: Dispatcher = {
 };
 
 function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
-  // 取到第一个hook
+  // 新建hook
   const hook = mountWorkInProgressHook();
 
   const nextDeps = deps === undefined ? null : deps;
@@ -93,7 +93,7 @@ function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
 }
 
 function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
-  // 取到第一个hook
+  // 对应去mount的时候的每一个effect
   const hook = updateWorkInProgressHook();
   const nextDeps = deps === undefined ? null : deps;
   let destroy: EffectCallback | void;

@@ -30,7 +30,6 @@ let nextEffect: FiberNode | null = null;
 /**
  * commit副作用入口
  * @param finishedWork
- * @param root
  */
 export const commitMutationEffects = (
   finishedWork: FiberNode,
