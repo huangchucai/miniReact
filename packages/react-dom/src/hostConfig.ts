@@ -1,5 +1,5 @@
 import { FiberNode } from "react-reconciler/src/fiber";
-import { HostText } from "react-reconciler/src/workTags";
+import { HostComponent, HostText } from "react-reconciler/src/workTags";
 import { DOMElement, updateFiberProps } from "./SyntheticEvent";
 import { Props } from "shared/ReactTypes";
 
@@ -32,6 +32,9 @@ export function commitUpdate(fiber: FiberNode) {
     case HostText:
       const text = fiber.memoizedProps.content;
       return commitTextUpdate(fiber.stateNode, text);
+    case HostComponent:
+      updateFiberProps(fiber.stateNode, fiber.memoizedProps);
+      return;
     default:
       if (__DEV__) {
         console.warn("未实现的update", fiber);
