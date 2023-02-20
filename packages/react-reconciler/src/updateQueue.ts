@@ -1,6 +1,6 @@
 import { Action } from "shared/ReactTypes";
 import { Dispatch } from "react/src/currentDispatcher";
-import { Lane } from "./fiberLanes";
+import { isSubsetOfLanes, Lane, NoLane } from "./fiberLanes";
 
 /**
  * 更新方式
@@ -79,33 +79,76 @@ export const processUpdateQueue = <State>(
   renderLane: Lane
 ): {
   memoizedState: State;
+  baseState: State;
+  baseQueue: Update<State> | null;
 } => {
   const result: ReturnType<typeof processUpdateQueue<State>> = {
     memoizedState: baseState,
+    baseState,
+    baseQueue: null,
   };
   if (pendingUpdate !== null) {
     // 第一个update
     const first = pendingUpdate.next;
     let pending = pendingUpdate.next as Update<any>;
+
+    let newBaseState = baseState; // 最后一个没被跳过update计算后的结果
+    let newBaseQueueFirst: Update<State> | null = null;
+    let newBaseQueueLast: Update<State> | null = null;
+    let newState = baseState; // 每次计算一次的结果
+
     do {
       const updateLane = pending.lane;
-      if (updateLane === renderLane) {
+      if (!isSubsetOfLanes(renderLane, updateLane)) {
+        // 优先级不够被跳过
+        const clone = createUpdate(pending.action, pending.lane); // clone被跳过的update
+        // 判断是不是第一个被跳过的
+        if (newBaseQueueFirst === null) {
+          // first u0 last u0
+          newBaseQueueFirst = clone;
+          newBaseQueueLast = clone;
+          // 如果本次更新有update被跳过, baseState为「最后一个没被跳过的update计算后的结果」
+          newBaseState = newState;
+        } else {
+          // first u0 last u0
+          // last u0 -> u1
+          // last u1
+          // 不是第一个被跳过的
+          (newBaseQueueLast as Update<State>).next = clone;
+          newBaseQueueLast = clone;
+        }
+      } else {
+        // 优先级足够
+        if (newBaseQueueFirst !== null) {
+          // 本次更新「被跳过的update及其后面的所有update」都会被保存在baseQueue中参与下次state计算
+          // 本次更新「参与计算但保存在baseQueue中的update」，优先级会降低到NoLane
+          const clone = createUpdate(pending.action, NoLane);
+          (newBaseQueueLast as Update<State>).next = clone;
+          newBaseQueueLast = clone;
+        }
+
         const action = pending.action;
         if (action instanceof Function) {
           // baseState 1 update (x) => 4x  -> memoizedState 4
-          baseState = action(baseState);
+          newState = action(baseState);
         } else {
           // baseState 1 update 2 -> memoizedState 2
-          baseState = action;
-        }
-      } else {
-        if (__DEV__) {
-          console.error("不应该进入processUpdateQueue");
+          newState = action;
         }
       }
       pending = pending.next as Update<any>;
     } while (pending !== first);
+
+    if (newBaseQueueLast === null) {
+      // 本次计算没有update被跳过
+      newBaseState = newState;
+    } else {
+      // 本次计算有update被跳过
+      newBaseQueueLast.next = newBaseQueueFirst;
+    }
+    result.memoizedState = newState;
+    result.baseState = newBaseState;
+    result.baseQueue = newBaseQueueLast;
   }
-  result.memoizedState = baseState;
   return result;
 };

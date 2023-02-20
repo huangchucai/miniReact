@@ -177,8 +177,7 @@ function performConcurrentWorkOnRoot(
   }
 
   // 已经更新完
-  // @ts-ignore
-  if (exitStatus === RootInComplete) {
+  if (exitStatus === RootCompleted) {
     const finishedWork = root.current.alternate;
     root.finishedWork = finishedWork;
     root.finishedLane = lane;
