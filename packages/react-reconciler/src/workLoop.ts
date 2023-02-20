@@ -156,6 +156,7 @@ function performConcurrentWorkOnRoot(
 
   const lane = getHighestPriorityLane(root.pendingLanes);
   const curCallbackNode = root.callbackNode;
+  // 防御性编程
   if (lane === NoLane) {
     return null;
   }
