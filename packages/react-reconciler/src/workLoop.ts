@@ -69,6 +69,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
  */
 function ensureRootIsScheduled(root: FiberRootNode) {
   let updateLane = getHighestPriorityLane(root.pendingLanes);
+  // 获取当前的callback
   const existingCallback = root.callbackNode;
 
   if (updateLane === NoLane) {
@@ -103,6 +104,8 @@ function ensureRootIsScheduled(root: FiberRootNode) {
     scheduleMicroTask(flushSyncCallbacks);
   } else {
     // 其他优先级 用宏任务调度
+
+    // 将react-lane 转换成 调度器的优先级
     const schedulerPriority = lanesToSchedulerPriority(updateLane);
     newCallbackNode = scheduleCallback(
       schedulerPriority,
@@ -110,7 +113,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
       performConcurrentWorkOnRoot.bind(null, root)
     );
   }
-
+  // 保存当前的调度任务以及调度任务的优先级
   root.callbackNode = newCallbackNode;
   root.callbackPriority = curPriority;
 }
@@ -138,6 +141,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 
 /**
  * 并发更新的render入口
+ * @didTimeout: 调度器传入 -> 任务是否过期
  */
 function performConcurrentWorkOnRoot(
   root: FiberRootNode,
@@ -145,10 +149,15 @@ function performConcurrentWorkOnRoot(
 ): any {
   // 并发开始的时候，需要保证useEffect回调已经执行
   // 因为useEffect的执行会触发更新，可能产生更高优先级的更新。
+  // function App() {
+  //   useEffect(() => {
+  //      updatexxx() // 如果触发了更高级别的更新
+  //   }, [])
+  // }
   const curCallback = root.callbackNode;
   let didFlushPassiveEffect = flushPassiveEffects(root.pendingPassiveEffects);
   if (didFlushPassiveEffect) {
-    // 这里表示：useEffect执行，触发了更新，并产生了比当前的更新优先级更高的更新
+    // 这里表示：useEffect执行，触发了更新，并产生了比当前的更新优先级更高的更新，取消本次的调度
     if (root.callbackNode !== curCallback) {
       return null;
     }
@@ -165,6 +174,10 @@ function performConcurrentWorkOnRoot(
 
   // render阶段
   const exitStatus = renderRoot(root, lane, !needSync);
+
+  // 再次执行调度，用于判断之后root.callbackNode === curCallbackNode,
+  // 因为如果并发过程中，优先级没有变，在执行调度后，由于curPriority === prevPriority，直接返回，导致curCallbackNode相等，继续调度
+  // 如果有更高优先级的调度的话，本次调度直接返回null,停止调度
   ensureRootIsScheduled(root);
 
   // 中断
@@ -196,6 +209,7 @@ function performConcurrentWorkOnRoot(
  */
 function performSyncWorkOnRoot(root: FiberRootNode) {
   let nextLane = getHighestPriorityLane(root.pendingLanes);
+  // 同步批处理中断的条件
   if (nextLane !== SyncLane) {
     // 其他比SyncLane 低的优先级
     // NoLane
@@ -227,6 +241,8 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
     console.log(`开始${shouldTimeSlice ? "并发" : "同步"}render更新`);
   }
 
+  // 由于并发更新会不断的执行，但是并不需要更新，所以我们需要判断优先级看看是否需要初始化
+  // 如果wipRootRenderLane 不等于 当前更新的lane
   if (wipRootRenderLane !== lane) {
     // 初始化，将workInProgress 指向第一个fiberNode
     prepareFreshStack(root, lane);

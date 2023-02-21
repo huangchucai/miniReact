@@ -15,9 +15,9 @@ export const NoLane = 0b0000;
 export const NoLanes = 0b0000;
 
 // lane模型
-export const SyncLane = 0b0001;
-export const InputContinuousLane = 0b0010; // 连续输入的事件
-export const DefaultLane = 0b0100;
+export const SyncLane = 0b0001; // unstable_ImmediatePriority
+export const InputContinuousLane = 0b0010; // 连续输入的事件 -> unstable_UserBlockingPriority
+export const DefaultLane = 0b0100; // -> unstable_NormalPriority
 export const IdleLane = 0b1000;
 
 export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {

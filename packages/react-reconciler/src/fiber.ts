@@ -77,7 +77,7 @@ export class FiberRootNode {
   pendingPassiveEffects: PendingPassiveEffects; //收集useEffect的回调
 
   // 调度器相关
-  callbackNode: CallbackNode | null;
+  callbackNode: CallbackNode | null; // 保存调度器回调的函数
   callbackPriority: Lane;
 
   constructor(container: Container, hostRootFiber: FiberNode) {
