@@ -84,11 +84,12 @@ function ensureRootIsScheduled(root: FiberRootNode) {
   const curPriority = updateLane;
   const prevPriority = root.callbackPriority;
   if (curPriority === prevPriority) {
-    // 如果之前的优先级等于当前的优先级，不需要调度。
-    // 在    return performConcurrentWorkOnRoot.bind(null, root); 中继续调度
+    // 如果之前的优先级等于当前的优先级, 不需要重新的调度，scheduler会自动的获取performConcurrentWorkOnRoot的返回函数继续调度
+    // （return performConcurrentWorkOnRoot.bind(null, root); 中继续调度）
     return;
   }
 
+  // 当前产生了更高优先级调度，取消之前的调度
   if (existingCallback !== null) {
     unstable_cancelCallback(existingCallback);
   }
@@ -140,7 +141,7 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 }
 
 /**
- * 并发更新的render入口
+ * 并发更新的render入口 -> scheduler时间切片执行的函数
  * @didTimeout: 调度器传入 -> 任务是否过期
  */
 function performConcurrentWorkOnRoot(
@@ -242,7 +243,7 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
   }
 
   // 由于并发更新会不断的执行，但是并不需要更新，所以我们需要判断优先级看看是否需要初始化
-  // 如果wipRootRenderLane 不等于 当前更新的lane
+  // 如果wipRootRenderLane 不等于 当前更新的lane， 就需要重新初始化，从根部开始调度
   if (wipRootRenderLane !== lane) {
     // 初始化，将workInProgress 指向第一个fiberNode
     prepareFreshStack(root, lane);
