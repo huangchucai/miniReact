@@ -40,6 +40,7 @@ export function updateContainer(
     const lane = requestUpdateLane(); // 每一个更新设置一个lane(优先级）
     const update = createUpdate<ReactElementType | null>(element, lane);
     enqueueUpdate(
+      // 首页渲染，直接插入更新
       hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
       update
     );

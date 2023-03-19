@@ -3,6 +3,9 @@ import ReactDOM from "react-dom";
 
 function App() {
   const [num, update] = useState(100);
+  useEffect(() => {
+    update(600);
+  }, []);
   return (
     <ul onClick={() => update(50)}>
       {new Array(num).fill(0).map((_, i) => {
