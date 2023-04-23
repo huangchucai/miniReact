@@ -12,10 +12,13 @@ import {
   createInstance,
   createTextInstance,
 } from "hostConfig";
-import { NoFlags, Update } from "./fiberFlags";
+import { NoFlags, Ref, Update } from "./fiberFlags";
 
 function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
+}
+function markRef(fiber: FiberNode) {
+  fiber.flags |= Ref;
 }
 
 /**
@@ -33,11 +36,19 @@ export const completeWork = (wip: FiberNode) => {
         // 2. 变了就需要标记 update flag
         // className style
         markUpdate(wip);
+        // 标记ref
+        if (current.ref !== wip.ref) {
+          markRef(wip);
+        }
       } else {
         // 1. 构建DOM
         const instance = createInstance(wip.type, newProps);
         // 2. 将DOM插入到DOM树中
         appendAllChildren(instance, wip);
+        // 标记Ref
+        if (wip.ref !== null) {
+          markRef(wip);
+        }
         wip.stateNode = instance;
       }
       bubbleProperties(wip);

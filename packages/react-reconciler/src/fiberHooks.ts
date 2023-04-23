@@ -79,13 +79,32 @@ const HooksDispatcherOnMount: Dispatcher = {
   useState: mountState,
   useEffect: mountEffect,
   useTransition: mountTransition,
+  useRef: mountRef,
 };
 
 const HooksDispatcherOnUpdate: Dispatcher = {
   useState: updateState,
   useEffect: updateEffect,
   useTransition: updateTransition,
+  useRef: updateRef,
 };
+
+/**
+ * useRef使用 ref = useRef(null)
+ * @param initialValue
+ */
+function mountRef<T>(initialValue: T): { current: T } {
+  const hook = mountWorkInProgressHook();
+  const ref = { current: initialValue };
+  hook.memoizedState = ref;
+  return ref;
+}
+
+function updateRef<T>(initialValue: T): { current: T } {
+  const hook = updateWorkInProgressHook();
+  console.log("--updateRef--updateRef", hook);
+  return hook.memoizedState;
+}
 
 function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
   // 新建hook

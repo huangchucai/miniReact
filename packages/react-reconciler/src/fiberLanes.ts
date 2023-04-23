@@ -28,7 +28,7 @@ export function mergeLanes(laneA: Lane, laneB: Lane): Lanes {
 
 export function requestUpdateLane() {
   // 增加transition 逻辑
-  let isTransition = ReactCurrentBatchConfig.transition !== null;
+  const isTransition = ReactCurrentBatchConfig.transition !== null;
   if (isTransition) {
     return TransitionLane;
   }
