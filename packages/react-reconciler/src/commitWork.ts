@@ -124,6 +124,12 @@ export const commitMutationEffects = commitEffects(
   commitMutationEffectsOnFibers
 );
 
+/**
+ * layout阶段
+ * @param fiber
+ * @param root
+ * @param type
+ */
 const commitLayoutEffectsOnFibers = (
   finishedWork: FiberNode,
   root: FiberRootNode
@@ -136,12 +142,6 @@ const commitLayoutEffectsOnFibers = (
   }
 };
 
-/**
- * layout阶段
- * @param fiber
- * @param root
- * @param type
- */
 export const commitLayoutEffects = commitEffects(
   "layout",
   LayoutMask,
@@ -259,7 +259,6 @@ function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
     switch (unmountFiber.tag) {
       case HostComponent:
         recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
-        // TODO: 解绑ref
         safelyDetachRef(unmountFiber);
         return;
       case HostText:
