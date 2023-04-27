@@ -21,7 +21,7 @@ export class FiberNode {
   sibling: FiberNode | null;
   child: FiberNode | null;
   index: number;
-  ref: Ref;
+  ref: Ref | null;
   memoizedProps: Props | null;
   memoizedState: any;
   alternate: FiberNode | null;
@@ -43,7 +43,7 @@ export class FiberNode {
     this.child = null; // 子节点
     this.index = 0; // 兄弟节点的索引
 
-    this.ref = { current: null };
+    this.ref = null;
 
     // 工作单元
     this.pendingProps = pendingProps; // 等待更新的属性
