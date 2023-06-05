@@ -1,5 +1,6 @@
 import { FiberNode } from "./fiber";
 import {
+  ContextProvider,
   Fragment,
   FunctionComponent,
   HostComponent,
@@ -7,11 +8,12 @@ import {
   HostText,
 } from "./workTags";
 import { processUpdateQueue, UpdateQueue } from "./updateQueue";
-import { ElementType, ReactElementType } from "shared/ReactTypes";
+import { ElementType, ReactContext, ReactElementType } from "shared/ReactTypes";
 import { mountChildFibers, reconcileChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
 import { Lane } from "./fiberLanes";
 import { Ref } from "./fiberFlags";
+import { pushProvider } from "./fiberContext";
 
 /**
  * 递归中的递阶段
@@ -30,6 +32,8 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
       return null;
     case Fragment:
       return updateFragment(wip);
+    case ContextProvider:
+      return updateContextProvider(wip);
     default:
       if (__DEV__) {
         console.warn("beginWork未实现的类型");
@@ -54,6 +58,36 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
   wip.memoizedState = memoizedState; // 其实就是传入的element
 
   const nextChildren = wip.memoizedState; // 子对应的ReactElement
+  reconcileChildren(wip, nextChildren);
+  return wip.child;
+}
+
+function updateContextProvider(wip: FiberNode) {
+  const providerType = wip.type;
+  // {
+  //   $$typeof: symbol | number;
+  //   _context: ReactContext<T>;
+  // }
+  const context = providerType._context;
+  const oldProps = wip.memoizedProps; // 旧的props <Context.Provider value={0}> {value, children}
+  const newProps = wip.pendingProps;
+
+  const newValue = newProps.value; // 新的value
+
+  if (newValue !== oldProps.value) {
+    // context.value发生了变化  向下遍历找到消费的context
+    // todo: 从Provider向下DFS，寻找消费了当前变化的context的consumer
+    // 如果找到consumer, 从consumer开始向上遍历到Provider
+    // 标记沿途的组件存在更新
+  }
+
+  // 逻辑 - context入栈
+  if (__DEV__ && !("value" in newProps)) {
+    console.warn("<Context.Provider>需要传入value");
+  }
+  pushProvider(context, newValue);
+
+  const nextChildren = wip.pendingProps.children;
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }

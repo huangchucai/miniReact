@@ -10,7 +10,7 @@ import {
   Update,
   UpdateQueue,
 } from "./updateQueue";
-import { Action } from "shared/ReactTypes";
+import { Action, ReactContext } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
 import { Lane, NoLane, requestUpdateLane } from "./fiberLanes";
 import { Flags, PassiveEffect } from "./fiberFlags";
@@ -80,6 +80,7 @@ const HooksDispatcherOnMount: Dispatcher = {
   useEffect: mountEffect,
   useTransition: mountTransition,
   useRef: mountRef,
+  useContext: readContext,
 };
 
 const HooksDispatcherOnUpdate: Dispatcher = {
@@ -87,6 +88,7 @@ const HooksDispatcherOnUpdate: Dispatcher = {
   useEffect: updateEffect,
   useTransition: updateTransition,
   useRef: updateRef,
+  useContext: readContext,
 };
 
 /**
@@ -405,4 +407,13 @@ function updateWorkInProgressHook(): Hook {
     workInProgressHook = newHook;
   }
   return workInProgressHook;
+}
+
+function readContext<T>(context: ReactContext<T>) {
+  const consumer = currentlyRenderingFiber;
+  if (consumer === null) {
+    throw new Error("context需要有consumer");
+  }
+  const value = context._currentValue;
+  return value;
 }

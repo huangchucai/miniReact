@@ -26,6 +26,7 @@ const ReactElement = function (
   };
   return element;
 };
+
 export function isValidElement(object: any) {
   return (
     typeof object === "object" &&
@@ -37,7 +38,7 @@ export function isValidElement(object: any) {
 export const jsx = (type: ElementType, config: any, ...maybeChildren: any) => {
   let key: Key = null;
   const props: Props = {};
-  let ref: Ref = null;
+  let ref: Ref | null = null;
   for (const prop in config) {
     const val = config[prop];
     if (prop === "key") {
@@ -65,14 +66,14 @@ export const jsx = (type: ElementType, config: any, ...maybeChildren: any) => {
       props.children = maybeChildren;
     }
   }
-  return ReactElement(type, key, ref, props);
+  return ReactElement(type, key, ref as Ref, props);
 };
 
 export const Fragment = REACT_FRAGMENT_TYPE;
 
 export const jsxDEV = (type: ElementType, config: any, key: any = null) => {
   const props: Props = {};
-  let ref: Ref = null;
+  let ref: Ref | null = null;
   for (const prop in config) {
     const val = config[prop];
     if (prop === "ref") {
@@ -85,5 +86,5 @@ export const jsxDEV = (type: ElementType, config: any, key: any = null) => {
       props[prop] = val;
     }
   }
-  return ReactElement(type, key, ref, props);
+  return ReactElement(type, key, ref as Ref, props);
 };
