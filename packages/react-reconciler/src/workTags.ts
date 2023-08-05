@@ -16,4 +16,4 @@ export const HostText = 6; //<div>123</div> div里面的文本
 export const Fragment = 7; //Fragment 类型
 
 export const ContextProvider = 11; // Context.Provider
-// export const ContextConsumer = 12; // Context.Provider
+// export const ContextConsumer = 12; // Context.ContextConsumer

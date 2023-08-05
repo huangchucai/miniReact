@@ -74,7 +74,7 @@ function updateContextProvider(wip: FiberNode) {
 
   const newValue = newProps.value; // 新的value
 
-  if (newValue !== oldProps.value) {
+  if (oldProps && newValue !== oldProps.value) {
     // context.value发生了变化  向下遍历找到消费的context
     // todo: 从Provider向下DFS，寻找消费了当前变化的context的consumer
     // 如果找到consumer, 从consumer开始向上遍历到Provider
@@ -87,7 +87,7 @@ function updateContextProvider(wip: FiberNode) {
   }
   pushProvider(context, newValue);
 
-  const nextChildren = wip.pendingProps.children;
+  const nextChildren = newProps.children;
   reconcileChildren(wip, nextChildren);
   return wip.child;
 }
