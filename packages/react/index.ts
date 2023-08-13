@@ -4,6 +4,9 @@ import {
   isValidElement as isValidElementFn,
   Fragment as fragment,
 } from "./src/jsx";
+
+export { REACT_SUSPENSE_TYPE as Suspense } from "shared/ReactSymbols";
+
 import currentDispatcher, {
   Dispatcher,
   resolveDispatcher,
