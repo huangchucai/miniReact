@@ -4,7 +4,9 @@ export type WorkTag =
   | typeof HostComponent
   | typeof HostText
   | typeof Fragment
-  | typeof ContextProvider;
+  | typeof ContextProvider
+  | typeof SuspenseComponent
+  | typeof OffscreenComponent;
 
 /**
  * fiber节点对应的 tag属性
@@ -16,4 +18,7 @@ export const HostText = 6; //<div>123</div> div里面的文本
 export const Fragment = 7; //Fragment 类型
 
 export const ContextProvider = 11; // Context.Provider
-// export const ContextConsumer = 12; // Context.Provider
+// export const ContextConsumer = 12; // Context.ContextConsumer
+
+export const SuspenseComponent = 13; // Suspense
+export const OffscreenComponent = 14; // Offscreen
