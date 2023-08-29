@@ -6,7 +6,6 @@ export function createContext<T>(defaultValue: T): ReactContext<T> {
     $$typeof: REACT_CONTEXT_TYPE,
     Provider: null,
     _currentValue: defaultValue,
-    _name: "hcc",
   };
   context.Provider = {
     $$typeof: REACT_PROVIDER_TYPE,

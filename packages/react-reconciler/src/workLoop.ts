@@ -177,6 +177,7 @@ function performConcurrentWorkOnRoot(
   }
 
   const needSync = lane === SyncLane || didTimeout;
+  console.log("-hcc-didTimeout--", didTimeout);
 
   // render阶段
   const exitStatus = renderRoot(root, lane, !needSync);
@@ -192,6 +193,7 @@ function performConcurrentWorkOnRoot(
     if (root.callbackNode !== curCallbackNode) {
       return null;
     }
+    console.log("-hcc-中断--", didTimeout);
     // 继续调度
     return performConcurrentWorkOnRoot.bind(null, root);
   }
