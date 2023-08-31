@@ -438,3 +438,9 @@ function use<T>(usable: Usable<T>): T {
   }
   throw new Error("不支持的use参数");
 }
+
+export function resetHookOnWind() {
+  currentlyRenderingFiber = null;
+  currentHook = null;
+  workInProgressHook = null;
+}

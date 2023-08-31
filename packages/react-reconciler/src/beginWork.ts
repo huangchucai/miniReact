@@ -20,8 +20,15 @@ import { ReactElementType } from "shared/ReactTypes";
 import { mountChildFibers, reconcileChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
 import { Lane } from "./fiberLanes";
-import { ChildDeletion, Placement, Ref } from "./fiberFlags";
+import {
+  ChildDeletion,
+  DidCapture,
+  NoFlags,
+  Placement,
+  Ref,
+} from "./fiberFlags";
 import { pushProvider } from "./fiberContext";
+import { pushSuspenseHandler } from "./suspenseContext";
 
 /**
  * 递归中的递阶段
@@ -79,14 +86,18 @@ function updateSuspenseComponent(wip: FiberNode) {
   const nextProps = wip.pendingProps;
 
   let showFallback = false; // 是否显示fallback
-  const didSuspend = true; // 是否挂起
+  // const didSuspend = true; // 是否挂起
+  const didSuspend = (wip.flags & DidCapture) !== NoFlags; // 是否挂起
   if (didSuspend) {
     // 显示fallback
     showFallback = true;
+    wip.flags &= ~DidCapture; // 清除DidCapture
   }
 
   const nextPrimaryChildren = nextProps.children; // 主渲染的内容
   const nextFallbackChildren = nextProps.fallback;
+
+  pushSuspenseHandler(wip);
 
   if (current === null) {
     // mount
