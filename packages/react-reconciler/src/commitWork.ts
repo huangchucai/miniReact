@@ -105,6 +105,7 @@ const commitMutationEffectsOnFibers = (
     safelyDetachRef(finishedWork);
   }
 
+  // OffscreenComponent的mode的变动
   if ((flags & Visibility) !== NoFlags && tag === OffscreenComponent) {
     const isHidden = finishedWork.pendingProps.mode === "hidden";
     // 处理suspense 的offscreen
@@ -113,6 +114,27 @@ const commitMutationEffectsOnFibers = (
   }
 };
 
+/*
+* OffscreenComponent中的子host 处理，可能是一个或者多个
+* function Cpn() {
+  return (
+    <p>123</p>
+  )
+}
+
+情况1，一个host节点：
+<Suspense fallback={<div>loading...</div>}>
+    <Cpn/>
+</Suspense>
+
+情况2，多个host节点：
+<Suspense fallback={<div>loading...</div>}>
+    <Cpn/>
+    <div>
+        <p>你好</p>
+    </div>
+</Suspense>
+* */
 function hideOrUnhideAllChildren(finishedWork: FiberNode, isHidden: boolean) {
   //1. 找到所有子树的顶层host节点
   findHostSubtreeRoot(finishedWork, (hostRoot) => {
@@ -133,7 +155,7 @@ function findHostSubtreeRoot(
   callback: (hostSubtreeRoot: FiberNode) => void
 ) {
   let node = finishedWork;
-  let hostSubtreeRoot = null;
+  let hostSubtreeRoot = null; // 子树顶层的host节点
 
   while (true) {
     if (node.tag === HostComponent) {

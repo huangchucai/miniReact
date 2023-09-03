@@ -27,6 +27,10 @@ export type ReactProviderType<T> = {
 };
 
 export type Usable<T> = Thenable<T> | ReactContext<T>;
+
+/**
+ * 唤起更新的意思
+ */
 export interface Wakeable<Result = any> {
   then(
     onFulfill: () => Result,

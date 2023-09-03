@@ -4,6 +4,10 @@ import { popSuspenseHandler } from "./suspenseContext";
 import { DidCapture, NoFlags, ShouldCapture } from "./fiberFlags";
 import { popProvider } from "./fiberContext";
 
+/**
+ * unwind的每一个fiberNode 的具体操作
+ * @param wip
+ */
 export function unwindWork(wip: FiberNode) {
   const flags = wip.flags;
   switch (wip.tag) {
@@ -13,7 +17,8 @@ export function unwindWork(wip: FiberNode) {
         (flags & ShouldCapture) !== NoFlags &&
         (flags & DidCapture) === NoFlags
       ) {
-        wip.flags = (flags & ~ShouldCapture) | DidCapture;
+        // 找到了距离我们最近的suspense
+        wip.flags = (flags & ~ShouldCapture) | DidCapture; // 移除ShouldCapture、 添加DidCapture
         return wip;
       }
       return null;

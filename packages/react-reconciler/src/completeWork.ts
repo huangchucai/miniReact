@@ -88,6 +88,13 @@ export const completeWork = (wip: FiberNode) => {
       bubbleProperties(wip);
       return null;
     case SuspenseComponent:
+      /**
+       * 对比Offscreen的mode(hide/visibity) 需要再suspense中
+       * 因为如果在OffscreenComponent中比较的话，当在Fragment分支的时候
+       * completeWork并不会走到OffscreenComponent
+       *
+       * current Offscreen mode 和 wip Offscreen mode 的对比
+       */
       popSuspenseHandler();
       // 比较变化mode的变化（visible | hide）
       const offscreenFiber = wip.child as FiberNode;
@@ -98,11 +105,12 @@ export const completeWork = (wip: FiberNode) => {
         // update
         const wasHidden = currentOffscreenFiber.pendingProps.mode === "hidden";
         if (wasHidden !== isHidden) {
+          // 可见性发生了变化
           offscreenFiber.flags |= Visibility;
           bubbleProperties(offscreenFiber);
         }
       } else if (isHidden) {
-        // mount 和 hidden的状态
+        // mount 并且 hidden的状态 todo: 这里什么流程走到
         offscreenFiber.flags |= Visibility;
         bubbleProperties(offscreenFiber);
       }

@@ -301,6 +301,13 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
   return RootCompleted;
 }
 
+/**
+ * unWind流程的具体操作
+ * @param root
+ * @param unitOfWork  当前的fiberNode(抛出错误的位置）
+ * @param thrownValue 请求的promise
+ * @param lane
+ */
 function throwAndUnwindWorkLoop(
   root: FiberRootNode,
   unitOfWork: FiberNode,
@@ -315,6 +322,10 @@ function throwAndUnwindWorkLoop(
   unwindUnitOfWork(unitOfWork);
 }
 
+/**
+ * 一直向上查找，找到距离它最近的Suspense fiberNode
+ * @param unitOfWork
+ */
 function unwindUnitOfWork(unitOfWork: FiberNode) {
   let incompleteWork: FiberNode | null = unitOfWork;
 

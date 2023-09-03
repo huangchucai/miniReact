@@ -25,6 +25,13 @@ export function throwException(root: FiberRootNode, value: any, lane: Lane) {
   }
 }
 
+/**
+ * 缓存的作用： 多次进入attachPingListener的时候，只会执行一次 wakeable.then(ping, ping);
+ * 这样就不会多次插入ping
+ * @param root
+ * @param wakeable
+ * @param lane
+ */
 function attachPingListener(
   root: FiberRootNode,
   wakeable: Wakeable<any>,
@@ -41,6 +48,7 @@ function attachPingListener(
     pingCache = root.pingCache = new WeakMap<Wakeable<any>, Set<Lane>>();
     pingCache.set(wakeable, threadIDS);
   } else {
+    // 查找是否可以找到可以唤醒的 theadIDS
     threadIDS = pingCache.get(wakeable);
     if (threadIDS === undefined) {
       threadIDS = new Set<Lane>();
@@ -48,6 +56,7 @@ function attachPingListener(
     }
   }
 
+  // 第一次进入
   if (!threadIDS.has(lane)) {
     threadIDS.add(lane);
 
