@@ -1,5 +1,5 @@
 import { FiberRootNode } from "./fiber";
-import { Lane } from "./fiberLanes";
+import { Lane, markRootPinged } from "./fiberLanes";
 import { Wakeable } from "shared/ReactTypes";
 import { ensureRootIsScheduled, markRootUpdated } from "./workLoop";
 import { getSuspenseHandler } from "./suspenseContext";
@@ -68,6 +68,7 @@ function attachPingListener(
       }
 
       // fiberRootNode
+      markRootPinged(root, lane);
       markRootUpdated(root, lane);
       ensureRootIsScheduled(root);
     }

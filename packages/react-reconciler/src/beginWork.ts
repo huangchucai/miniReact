@@ -35,6 +35,7 @@ import { pushSuspenseHandler } from "./suspenseContext";
  * 比较 然后返回子fiberNode 或者null
  */
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
+  console.log("-hcc-beginWork---", wip);
   switch (wip.tag) {
     case HostRoot:
       return updateHostRoot(wip, renderLane);
@@ -74,10 +75,17 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
   const pending = updateQueue.shared.pending;
   updateQueue.shared.pending = null;
   const { memoizedState } = processUpdateQueue(baseState, pending, renderLane); // 最新状态
+
+  const current = wip.alternate;
+  if (current !== null) {
+    current.memoizedState = memoizedState;
+  }
+
   wip.memoizedState = memoizedState; // 其实就是传入的element
 
   const nextChildren = wip.memoizedState; // 子对应的ReactElement
   reconcileChildren(wip, nextChildren);
+  console.warn("--hostRoot的beginWork工作流程--", wip);
   return wip.child;
 }
 
