@@ -1,6 +1,7 @@
 import { Action } from "shared/ReactTypes";
 import { Dispatch } from "react/src/currentDispatcher";
-import { isSubsetOfLanes, Lane, NoLane } from "./fiberLanes";
+import { isSubsetOfLanes, Lane, Lanes, mergeLanes, NoLane } from "./fiberLanes";
+import { FiberNode } from "./fiber";
 
 /**
  * 更新方式
@@ -52,10 +53,14 @@ export const createUpdateQueue = <State>() => {
  * 更新update
  * @param {UpdateQueue<Action>} updateQueue
  * @param {Update<Action>} update
+ * @param fiberNode
+ * @param lane
  */
 export const enqueueUpdate = <State>(
   updateQueue: UpdateQueue<State>,
-  update: Update<State>
+  update: Update<State>,
+  fiber: FiberNode,
+  lane: Lane
 ) => {
   const pending = updateQueue.shared.pending;
   if (pending === null) {
@@ -68,6 +73,12 @@ export const enqueueUpdate = <State>(
     pending.next = update;
   }
   updateQueue.shared.pending = update;
+
+  fiber.lanes = mergeLanes(fiber.lanes, lane);
+  const alternate = fiber.alternate;
+  if (alternate !== null) {
+    alternate.lanes = mergeLanes(alternate.lanes, lane);
+  }
 };
 
 /**
@@ -76,7 +87,8 @@ export const enqueueUpdate = <State>(
 export const processUpdateQueue = <State>(
   baseState: State,
   pendingUpdate: Update<State> | null,
-  renderLane: Lane
+  renderLane: Lane,
+  onSkipUpdate?: <State>(update: Update<State>) => void
 ): {
   memoizedState: State;
   baseState: State;
@@ -102,6 +114,7 @@ export const processUpdateQueue = <State>(
       if (!isSubsetOfLanes(renderLane, updateLane)) {
         // 优先级不够被跳过
         const clone = createUpdate(pending.action, pending.lane); // clone被跳过的update
+        onSkipUpdate?.(clone);
         // 判断是不是第一个被跳过的
         if (newBaseQueueFirst === null) {
           // first u0 last u0

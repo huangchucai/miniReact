@@ -19,7 +19,7 @@ import { processUpdateQueue, UpdateQueue } from "./updateQueue";
 import { ReactElementType } from "shared/ReactTypes";
 import { mountChildFibers, reconcileChildFibers } from "./childFibers";
 import { renderWithHooks } from "./fiberHooks";
-import { Lane } from "./fiberLanes";
+import { Lane, NoLanes } from "./fiberLanes";
 import {
   ChildDeletion,
   DidCapture,
@@ -36,6 +36,12 @@ import { pushSuspenseHandler } from "./suspenseContext";
  */
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
   console.log("-hcc-beginWork---", wip);
+
+  /**
+   * beginWork消费update  update -> state
+   */
+  wip.lanes = NoLanes;
+
   switch (wip.tag) {
     case HostRoot:
       return updateHostRoot(wip, renderLane);

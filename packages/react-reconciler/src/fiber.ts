@@ -39,6 +39,10 @@ export class FiberNode {
   updateQueue: unknown;
   deletions: FiberNode[] | null;
 
+  // 性能优化的相关字段
+  lanes: Lanes;
+  childLanes: Lanes;
+
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     this.tag = tag;
     this.pendingProps = pendingProps;
@@ -66,6 +70,9 @@ export class FiberNode {
     this.flags = NoFlags; // 副作用标识
     this.subtreeFlags = NoFlags; // 子树中的副作用
     this.deletions = null; // 保存需要删除的子fiberNode
+
+    this.lanes = NoLanes;
+    this.childLanes = NoLanes;
   }
 }
 
@@ -151,6 +158,9 @@ export const createWorkInProgress = (
   wip.memoizedProps = current.memoizedProps;
   wip.memoizedState = current.memoizedState;
   wip.ref = current.ref;
+
+  wip.lanes = current.lanes;
+  wip.childLanes = current.childLanes;
   return wip;
 };
 

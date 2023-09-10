@@ -12,7 +12,7 @@ import {
 } from "./updateQueue";
 import { Action, ReactContext, Thenable, Usable } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
-import { Lane, NoLane, requestUpdateLane } from "./fiberLanes";
+import { Lane, mergeLanes, NoLane, requestUpdateLane } from "./fiberLanes";
 import { Flags, PassiveEffect } from "./fiberFlags";
 import { HookHasEffect, Passive } from "./hookEffectTags";
 import { REACT_CONTEXT_TYPE } from "shared/ReactSymbols";
@@ -256,7 +256,12 @@ function updateState<State>(): [State, Dispatch<State>] {
       memoizedState,
       baseQueue: newBaseQueue,
       baseState: newBaseState,
-    } = processUpdateQueue(baseState, baseQueue, renderLane);
+    } = processUpdateQueue(baseState, baseQueue, renderLane, (update) => {
+      const skippedLane = update.lane;
+      const fiber = currentlyRenderingFiber as FiberNode;
+      // 在beginWork的时候会被重置为NoLanes , 现在由于被跳过，需要重新加回去lane
+      fiber.lanes = mergeLanes(fiber.lanes, skippedLane);
+    });
     hook.memoizedState = memoizedState;
     hook.baseQueue = newBaseQueue;
     hook.baseState = newBaseState;
@@ -328,7 +333,7 @@ function dispatchSetState<State>(
 ) {
   const lane = requestUpdateLane(); // 每一个更新设置一个lane(优先级）
   const update = createUpdate(action, lane); // 1. 创建update
-  enqueueUpdate(updateQueue, update); //  2. 将更新放入队列中
+  enqueueUpdate(updateQueue, update, fiber, lane); //  2. 将更新放入队列中
   scheduleUpdateOnFiber(fiber, lane); // 3. 开始调度
 }
 
