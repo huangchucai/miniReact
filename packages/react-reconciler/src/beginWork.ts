@@ -30,11 +30,31 @@ import {
 import { pushProvider } from "./fiberContext";
 import { pushSuspenseHandler } from "./suspenseContext";
 
+// 是否能命中bailout
+let didReceiveUpdate = false; //(默认命中bailout策略）
+
+export function markWipReceivedUpdate() {
+  didReceiveUpdate = true; // 接受更新，没有命中bailout
+}
 /**
  * 递归中的递阶段
  * 比较 然后返回子fiberNode 或者null
  */
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
+  // 四要素 -> 判断是否变化 (props state context type)
+  const current = wip.alternate;
+  if (current !== null) {
+    const oldProps = current.memoizedProps;
+    const newProps = wip.pendingProps;
+
+    // props 和 type
+    if (oldProps !== newProps || current.type !== wip.type) {
+      didReceiveUpdate = true;
+    } else {
+      // state context比较
+    }
+  }
+
   /**
    * beginWork消费update  update -> state
    */
@@ -66,6 +86,14 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
   }
   return null;
 };
+
+function checkScheduledUpdateOrContext(
+  current: FiberNode,
+  renderLane: Lane
+): boolean {
+  const updateLane = current.lanes;
+  return false;
+}
 
 /**
  * hostRoot的beginWork工作流程

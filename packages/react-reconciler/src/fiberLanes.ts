@@ -137,3 +137,12 @@ export function getNextLane(root: FiberRootNode): Lane {
   }
   return nextLane;
 }
+
+/**
+ * 检查父集合中是否存在子集合
+ * @param set
+ * @param subset
+ */
+export function includeSomeLanes(set: Lanes, subset: Lane | Lanes): boolean {
+  return set * subset !== NoLanes;
+}
