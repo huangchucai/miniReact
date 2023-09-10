@@ -42,7 +42,9 @@ export function updateContainer(
     enqueueUpdate(
       // 首页渲染，直接插入更新
       hostRootFiber.updateQueue as UpdateQueue<ReactElementType | null>,
-      update
+      update,
+      hostRootFiber,
+      lane
     );
     // 插入更新后，进入调度
     scheduleUpdateOnFiber(hostRootFiber, lane);

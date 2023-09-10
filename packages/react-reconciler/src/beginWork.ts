@@ -35,8 +35,6 @@ import { pushSuspenseHandler } from "./suspenseContext";
  * 比较 然后返回子fiberNode 或者null
  */
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
-  console.log("-hcc-beginWork---", wip);
-
   /**
    * beginWork消费update  update -> state
    */
