@@ -12,11 +12,18 @@ import {
 } from "./updateQueue";
 import { Action, ReactContext, Thenable, Usable } from "shared/ReactTypes";
 import { scheduleUpdateOnFiber } from "./workLoop";
-import { Lane, mergeLanes, NoLane, requestUpdateLane } from "./fiberLanes";
+import {
+  Lane,
+  mergeLanes,
+  NoLane,
+  removeLanes,
+  requestUpdateLane,
+} from "./fiberLanes";
 import { Flags, PassiveEffect } from "./fiberFlags";
 import { HookHasEffect, Passive } from "./hookEffectTags";
 import { REACT_CONTEXT_TYPE } from "shared/ReactSymbols";
 import { trackUsedThenable } from "./thenable";
+import { markWipReceivedUpdate } from "./beginWork";
 
 let currentlyRenderingFiber: FiberNode | null = null; // 记录当前正在执行的render 的FC 对应的fiberNode
 let workInProgressHook: Hook | null = null; // 当前正在处理的hook
@@ -252,6 +259,8 @@ function updateState<State>(): [State, Dispatch<State>] {
     queue.shared.pending = null;
   }
   if (baseQueue !== null) {
+    const prevState = hook.memoizedState; // 更新前的状态
+
     const {
       memoizedState,
       baseQueue: newBaseQueue,
@@ -262,6 +271,11 @@ function updateState<State>(): [State, Dispatch<State>] {
       // 在beginWork的时候会被重置为NoLanes , 现在由于被跳过，需要重新加回去lane
       fiber.lanes = mergeLanes(fiber.lanes, skippedLane);
     });
+
+    if (!Object.is(prevState, memoizedState)) {
+      // 更新前后有变化，没有命中bailout
+      markWipReceivedUpdate();
+    }
     hook.memoizedState = memoizedState;
     hook.baseQueue = newBaseQueue;
     hook.baseState = newBaseState;
@@ -448,4 +462,15 @@ export function resetHookOnWind() {
   currentlyRenderingFiber = null;
   currentHook = null;
   workInProgressHook = null;
+}
+
+/**
+ * bailout重置变量
+ */
+export function bailOutHook(wip: FiberNode, renderLane: Lane) {
+  const current = wip.alternate as FiberNode;
+  wip.updateQueue = current.updateQueue;
+  wip.flags &= ~PassiveEffect;
+
+  current.lanes = removeLanes(current.lanes, renderLane);
 }
