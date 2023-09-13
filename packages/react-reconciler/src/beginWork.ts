@@ -139,6 +139,14 @@ function bailoutOnAlreadyFinishedWork(wip: FiberNode, renderLane: Lane) {
   return wip.child;
 }
 
+/**
+ * renderLane 代表本次更新对应的优先级
+ * updateLanes 代表当前fiber所有未执行的update对应的更新的优先级
+ *
+ * 所以这行代码的意思是： 当前这个fiber中所有未执行的update对应更新的优先级中是否包含了本次更新的优先级，也就是本次更新当前这个fiber是否有状态会变化
+ * @param current
+ * @param renderLane
+ */
 function checkScheduledUpdateOrContext(
   current: FiberNode,
   renderLane: Lane
