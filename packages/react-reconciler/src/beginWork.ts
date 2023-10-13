@@ -94,7 +94,6 @@ function updateSuspenseComponent(wip: FiberNode) {
   const nextProps = wip.pendingProps;
 
   let showFallback = false; // 是否显示fallback
-  // const didSuspend = true; // 是否挂起
   const didSuspend = (wip.flags & DidCapture) !== NoFlags; // 是否挂起
   if (didSuspend) {
     // 显示fallback

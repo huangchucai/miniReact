@@ -116,3 +116,15 @@ export const scheduleMicroTask =
     : typeof Promise === "function"
     ? (callback: (...args: any) => void) => Promise.resolve(null).then(callback)
     : setTimeout;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const hideInstance = () => {};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const hideTextInstance = () => {};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const unhideInstance = () => {};
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const unhideTextInstance = () => {};
