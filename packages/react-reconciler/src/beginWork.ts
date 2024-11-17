@@ -35,7 +35,7 @@ import { pushProvider } from "./fiberContext";
 import { pushSuspenseHandler } from "./suspenseContext";
 
 // 是否能命中bailout
-let didReceiveUpdate = false; //(默认命中bailout策略）
+let didReceiveUpdate = false; //(默认命中bailout策略,不接受更新）
 
 export function markWipReceivedUpdate() {
   didReceiveUpdate = true; // 接受更新，没有命中bailout
@@ -52,12 +52,13 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = wip.pendingProps;
-
+    console.log("-hcc-beginWork", oldProps, newProps, wip);
+    console.log("-hcc-beginWork-比较", oldProps === newProps);
     // props 和 type
     if (oldProps !== newProps || current.type !== wip.type) {
-      didReceiveUpdate = true;
+      didReceiveUpdate = true; // 不能命中bailout
     } else {
-      console.warn("命中");
+      console.warn("命中bailout --- 满足props 和 type");
       // state context比较
       const hasScheduledStateOrContext = checkScheduledUpdateOrContext(
         current,
@@ -124,6 +125,13 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
  */
 function bailoutOnAlreadyFinishedWork(wip: FiberNode, renderLane: Lane) {
   // 1. 检查优化程度
+  /**
+   * 如果这个检查返回false，
+   * 说明当前fiber的子节点不包含任何应该在当前render lane更新的内容。这种情况下，
+   * 这个fiber subtree（该节点及其所有子节点）在当前渲染过程中可以被跳过（bailout），
+   * 因为没有相关的更新需要应用于这部分的DOM。
+   * 因此，通过返回null来中止当前fiber的工作。
+   */
   if (!includeSomeLanes(wip.childLanes, renderLane)) {
     // 检查整个子树
     if (__DEV__) {

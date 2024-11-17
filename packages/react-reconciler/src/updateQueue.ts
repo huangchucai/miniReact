@@ -23,6 +23,7 @@ export interface UpdateQueue<State> {
 /**
  * 创建更新
  * @param {Action<State>} action
+ * @param lane 保存未执行更新对应的lane
  * @returns {Update<State>}
  */
 export const createUpdate = <State>(
@@ -53,7 +54,7 @@ export const createUpdateQueue = <State>() => {
  * 更新update
  * @param {UpdateQueue<Action>} updateQueue
  * @param {Update<Action>} update
- * @param fiberNode
+ * @param fiber
  * @param lane
  */
 export const enqueueUpdate = <State>(
